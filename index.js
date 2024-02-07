@@ -5,8 +5,9 @@ require('dotenv').config();
 const app = express()
 const db = require('./config/db');
 const User = require('./models/userModel');
-var jwt = require('jsonwebtoken');
 
+const generateToken = require('./config/generateToken');
+const verifyJWT = require('./middleware/VerifyJWT')
 
 /// Basic middlewares
 
@@ -33,7 +34,7 @@ app.get('/', async (req, res) => {
 
 })
 
-
+/// register user///
 app.post('/saveUser', async (req, res) => {
     // console.log(req.body)
 
@@ -50,14 +51,12 @@ app.post('/saveUser', async (req, res) => {
 
             try {
                 const response = await user.save()
-                const token = jwt.sign({ user: response }, process.env.JWT_SECRET_KEY, {
-                    expiresIn: '5h'
-                });
+                const token = generateToken(response);
 
                 console.log(token);
 
                 /// return a token from here also
-                res.status(200).json({ success: true, message: 'saved', response, token })
+                res.status(200).json({ success: true, message: 'saved', user: response, token })
             } catch (error) {
                 res.status(500).json({ success: false, message: 'Internal Server Error', error })
             }
@@ -69,13 +68,66 @@ app.post('/saveUser', async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal Server Error', error })
     }
+})
+
+// give token to user
+app.post('/login', async (req, res) => {
+
+    const user = new User(req.body)
+    console.log('the user ', user);
+
+    try {
+
+        const userEmail = user.email
+
+        const response = await User.findOne({ email: userEmail })
+        const token = generateToken(response)
+        console.log('token', token);
+        if (!response) {
+
+            res.status(400).json({ success: false, message: 'Not Found', response })
+
+        } else {
+            res.status(200).json({ success: true, message: 'user Found', user: response, token })
+        }
 
 
-
-
-
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Internal Server Error', error })
+    }
 
 })
+
+/////// Search user ////
+
+app.post('/search-user', verifyJWT, async (req, res) => {
+
+    const decoded = req.decoded
+
+
+    const { inputValue } = req.body;
+
+    try {
+
+        const regexPattern = new RegExp("\\b" + inputValue + "\\w{0,}\\b", "i");
+        const users = await User.find({
+            $or: [
+                { name: regexPattern }
+                ,
+                { email: regexPattern }
+            ]
+        })
+
+        res.status(200).json({ users, success: true })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'server error' })
+    }
+})
+
+
+
 
 app.listen(3000, () => {
     console.log('example listening to port', 3000);

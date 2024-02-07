@@ -7,9 +7,9 @@ const userSchema = new Schema({
     name: {
         type: String,
     },
-    email : {
-        type : String,
-        lowercase : true,
+    email: {
+        type: String,
+        lowercase: true,
     },
     photoURL: String,
 
@@ -17,5 +17,5 @@ const userSchema = new Schema({
 
 })
 
-const User = mongoose.model('users',userSchema)
+const User = mongoose.model('users', userSchema)
 module.exports = User
