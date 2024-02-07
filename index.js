@@ -3,9 +3,9 @@ const express = require('express')
 const cors = require('cors')
 require('dotenv').config();
 const app = express()
-const db = require('./db');
+const db = require('./config/db');
 const User = require('./models/userModel');
-
+var jwt = require('jsonwebtoken');
 
 
 /// Basic middlewares
@@ -45,21 +45,26 @@ app.post('/saveUser', async (req, res) => {
         const userEmail = user.email
 
         const response = await User.findOne({ email: userEmail })
-    
+
         if (!response) {
 
             try {
                 const response = await user.save()
+                const token = jwt.sign({ user: response }, process.env.JWT_SECRET_KEY, {
+                    expiresIn: '5h'
+                });
+
+                console.log(token);
 
                 /// return a token from here also
-                res.status(200).json({ success: true, message: 'saved', response })
+                res.status(200).json({ success: true, message: 'saved', response, token })
             } catch (error) {
                 res.status(500).json({ success: false, message: 'Internal Server Error', error })
             }
-        }else{
+        } else {
             res.status(400).json({ success: false, message: 'Bad request | User Already Exists', response })
         }
- 
+
 
     } catch (error) {
         res.status(500).json({ success: false, message: 'Internal Server Error', error })
