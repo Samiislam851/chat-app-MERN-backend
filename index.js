@@ -343,6 +343,33 @@ app.get('/get-friends', verifyJWT, async (req, res) => {
 })
 
 
+//////// get-sent-requests
+app.get('/get-sent-requests', verifyJWT, async (req, res) => {
+
+    const decoded = req.decoded
+
+    const requester = req.query.email
+
+
+    try {
+        const user = await User.findOne({
+            email: requester
+        })
+
+        const pendingRequests = user.pendingRequests;
+
+        // Find users whose email addresses are in the friends array
+        const users = await User.find({ email: { $in: pendingRequests } })
+
+        res.status(200).json({ users, success: true })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'server error' })
+    }
+})
+
+
 
 
 ///// accept request
