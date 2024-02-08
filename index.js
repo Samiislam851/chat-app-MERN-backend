@@ -70,7 +70,7 @@ app.post('/saveUser', async (req, res) => {
     }
 })
 
-// give token to user
+// login give token to user
 app.post('/login', async (req, res) => {
 
     const user = new User(req.body)
@@ -129,26 +129,34 @@ app.post('/search-user', verifyJWT, async (req, res) => {
 
 ////// Send Request
 
-app.put('/send-request/', verifyJWT, async (req, res) => {
-    const id1 = req.params.id1
-    const id2 = req.params.id2
-    console.log('verified');
+app.post('/send-request/', verifyJWT, async (req, res) => {
+    const email1 = req.query.user1email
+    const email2 = req.query.user2email
+    console.log('verified', email1, email2, req.query);
 
 
     // sending request from id1 to id2 
 
 
     try {
-        const user1 = await User.findByIdAndUpdate(id1, { $push: { pendingRequests: id2 } }, { new: true })
-
-        const user2 = await User.findByIdAndUpdate(id2, { $push: { incomingRequests: id1 } }, { new: true })
+        const user1 = await User.findOneAndUpdate({ email: email1 }, { $push: { pendingRequests: email2 } }, { new: true })
+        const user2 = await User.findOneAndUpdate({ email: email2 }, { $push: { incomingRequests: email1 } }, { new: true })
+        console.log('user2 ::::::::::', user2);
 
         console.log('user1 ::::::::::', user1);
-        console.log('user2 ::::::::::', user2);
+
     } catch (error) {
         console.error("Error:", error);
         res.status(500).send("Internal Server Error");
     }
+
+
+
+  
+
+
+
+
 
 })
 

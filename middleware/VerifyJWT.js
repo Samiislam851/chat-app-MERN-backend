@@ -2,13 +2,13 @@
 const jwt = require('jsonwebtoken')
 
 const verifyJWT = (req, res, next) => {
-    const { inputValue, user } = req.body;
+  
     const token = req.headers.authorization?.split(' ')[1]
-    // console.log(token, inputValue, user);
+    console.log(req.headers);
     if (!token) {
-
+        console.log('token was not given');
         res.status(400).json({ success: false, message: 'token was not given' })
-
+        return
     }
 
     jwt.verify(token, process.env.JWT_SECRET_KEY, (err, decoded) => {
