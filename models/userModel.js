@@ -12,8 +12,10 @@ const userSchema = new Schema({
         lowercase: true,
     },
     photoURL: String,
-
-
+    friends: [String],
+    incomingRequests: [String],
+    pendingRequests: [String],
+    chats: [String]
 
 })
 

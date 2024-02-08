@@ -127,7 +127,30 @@ app.post('/search-user', verifyJWT, async (req, res) => {
 })
 
 
+////// Send Request
 
+app.put('/send-request/', verifyJWT, async (req, res) => {
+    const id1 = req.params.id1
+    const id2 = req.params.id2
+    console.log('verified');
+
+
+    // sending request from id1 to id2 
+
+
+    try {
+        const user1 = await User.findByIdAndUpdate(id1, { $push: { pendingRequests: id2 } }, { new: true })
+
+        const user2 = await User.findByIdAndUpdate(id2, { $push: { incomingRequests: id1 } }, { new: true })
+
+        console.log('user1 ::::::::::', user1);
+        console.log('user2 ::::::::::', user2);
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("Internal Server Error");
+    }
+
+})
 
 app.listen(3000, () => {
     console.log('example listening to port', 3000);
