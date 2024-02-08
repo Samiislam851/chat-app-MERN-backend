@@ -70,7 +70,7 @@ app.post('/saveUser', async (req, res) => {
     }
 })
 
-// login give token to user
+/////////////////////////////////////////// login give token to user
 app.post('/login', async (req, res) => {
 
     const user = new User(req.body)
@@ -98,12 +98,16 @@ app.post('/login', async (req, res) => {
 
 })
 
-/////// Search user ////
+//////////////////////////////////////////////// Search user ///////////////////////////////////////////////////////
 
 app.post('/search-user', verifyJWT, async (req, res) => {
 
     const decoded = req.decoded
 
+    const requester = req.body.user.email
+
+
+    console.log(requester);
 
     const { inputValue } = req.body;
 
@@ -118,7 +122,10 @@ app.post('/search-user', verifyJWT, async (req, res) => {
             ]
         })
 
-        res.status(200).json({ users, success: true })
+
+
+        const filteredUsers = users.filter(user => user.email !== requester)
+        res.status(200).json({ users: filteredUsers, success: true })
 
     } catch (error) {
         console.log(error);
@@ -127,7 +134,7 @@ app.post('/search-user', verifyJWT, async (req, res) => {
 })
 
 
-////// Send Request
+//////////////////////////////////////////// Send Request ////////////////////////////////////////////////
 
 app.post('/send-request/', verifyJWT, async (req, res) => {
     const email1 = req.query.user1email
@@ -135,30 +142,113 @@ app.post('/send-request/', verifyJWT, async (req, res) => {
     console.log('verified', email1, email2, req.query);
 
 
-    // sending request from id1 to id2 
+    /////////////// sending request from id1 to id2 
 
 
     try {
-        const user1 = await User.findOneAndUpdate({ email: email1 }, { $push: { pendingRequests: email2 } }, { new: true })
-        const user2 = await User.findOneAndUpdate({ email: email2 }, { $push: { incomingRequests: email1 } }, { new: true })
+        const user1 = await User.findOneAndUpdate({ email: email1 }, { $addToSet: { pendingRequests: email2 } }, { new: true })
+        const user2 = await User.findOneAndUpdate({ email: email2 }, { $addToSet: { incomingRequests: email1 } }, { new: true })
         console.log('user2 ::::::::::', user2);
-
         console.log('user1 ::::::::::', user1);
+
+
+
+
+        if (user1 && user2) {
+            res.status(200).json({ message: 'Request Sent', user:user1 })
+        }
+
 
     } catch (error) {
         console.error("Error:", error);
         res.status(500).send("Internal Server Error");
     }
-
-
-
-  
-
-
-
-
-
 })
+
+
+
+
+///////// Canceling request 
+
+
+app.post('/cancel-request/', verifyJWT, async (req, res) => {
+    const email1 = req.query.user1email;
+    const email2 = req.query.user2email;
+    console.log('verified', email1, email2, req.query);
+
+    try {
+        const user1 = await User.findOneAndUpdate(
+            { email: email1 },
+            { $pull: { pendingRequests: email2 } }, // Remove email2 from pendingRequests
+            { new: true }
+        );
+
+        const user2 = await User.findOneAndUpdate(
+            { email: email2 },
+            { $pull: { incomingRequests: email1 } }, // Remove email1 from incomingRequests
+            { new: true }
+        );
+
+        console.log('user2 ::::::::::', user2);
+        console.log('user1 ::::::::::', user1);
+
+        if (user1 && user2) {
+            res.status(200).json({ message: 'Request canceled successfully.', user:user1 });
+        } else {
+            res.status(404).json({ message: 'Users not found or request already canceled.' });
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("internal server error")
+    }
+})
+
+
+
+
+
+
+//////////////////////// get an User ////////////////
+
+app.get('/get-single-user', verifyJWT, async (req, res) => {
+
+    const decoded = req.decoded
+
+    const requester = req.query.email
+
+
+
+    console.log(requester);
+
+    const { inputValue } = req.body;
+
+    try {
+        const user = await User.findOne({
+            email: requester
+        })
+
+
+
+        res.status(200).json({ user, success: true })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'server error' })
+    }
+})
+
+
+
+
+
+
+
+
+
+
+
+
 
 app.listen(3000, () => {
     console.log('example listening to port', 3000);
