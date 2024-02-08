@@ -155,7 +155,7 @@ app.post('/send-request/', verifyJWT, async (req, res) => {
 
 
         if (user1 && user2) {
-            res.status(200).json({ message: 'Request Sent', user:user1 })
+            res.status(200).json({ message: 'Request Sent', user: user1 })
         }
 
 
@@ -193,7 +193,7 @@ app.post('/cancel-request/', verifyJWT, async (req, res) => {
         console.log('user1 ::::::::::', user1);
 
         if (user1 && user2) {
-            res.status(200).json({ message: 'Request canceled successfully.', user:user1 });
+            res.status(200).json({ message: 'Request canceled successfully.', user: user1 });
         } else {
             res.status(404).json({ message: 'Users not found or request already canceled.' });
         }
@@ -239,9 +239,33 @@ app.get('/get-single-user', verifyJWT, async (req, res) => {
 })
 
 
+///////////// friend request list
+
+app.get('/get-friend-requests', verifyJWT, async (req, res) => {
+
+    const decoded = req.decoded
+
+    const requester = req.query.email
 
 
+    try {
+        const user = await User.findOne({
+            email: requester
+        })
 
+    
+        const incomingEmails = user.incomingRequests;
+
+        // Find users whose email addresses are in the incomingEmails array
+        const users = await User.find({ email: { $in: incomingEmails } });
+   
+        res.status(200).json({ users, success: true })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'server error' })
+    }
+})
 
 
 

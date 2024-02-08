@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken')
 const verifyJWT = (req, res, next) => {
   
     const token = req.headers.authorization?.split(' ')[1]
-    console.log(req.headers);
+    // console.log(req.headers);
     if (!token) {
         console.log('token was not given');
         res.status(400).json({ success: false, message: 'token was not given' })
