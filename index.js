@@ -136,7 +136,7 @@ app.post('/search-user', verifyJWT, async (req, res) => {
 
 //////////////////////////////////////////// Send Request ////////////////////////////////////////////////
 
-app.post('/send-request/', verifyJWT, async (req, res) => {
+app.post('/send-request', verifyJWT, async (req, res) => {
     const email1 = req.query.user1email
     const email2 = req.query.user2email
     console.log('verified', email1, email2, req.query);
@@ -167,11 +167,56 @@ app.post('/send-request/', verifyJWT, async (req, res) => {
 
 
 
+////////// Cancel Request
 
-///////// Canceling request 
 
 
-app.post('/cancel-request/', verifyJWT, async (req, res) => {
+app.post('/cancel-request', verifyJWT, async (req, res) => {
+    const email1 = req.query.user1email;
+    const email2 = req.query.user2email;
+    console.log('verified', email1, email2, req.query);
+
+    try {
+        const user1 = await User.findOneAndUpdate(
+            { email: email1 },
+            { $pull: { incomingRequests: email2 } }, // Remove email2 from incomingRequests
+            { new: true }
+        );
+
+        const user2 = await User.findOneAndUpdate(
+            { email: email2 },
+            { $pull: { pendingRequests: email1 } }, // Remove email1 from pendingRequests
+            { new: true }
+        );
+
+        console.log('user2 ::::::::::', user2);
+        console.log('user1 ::::::::::', user1);
+
+        if (user1 && user2) {
+            res.status(200).json({ message: 'Request canceled successfully.', user: user1 });
+        } else {
+            res.status(404).json({ message: 'Users not found or request already canceled.' });
+        }
+
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("internal server error")
+    }
+})
+
+
+
+
+
+
+
+
+
+
+///////// Canceling request from requester
+
+
+app.post('/cancel-request-from-requester', verifyJWT, async (req, res) => {
     const email1 = req.query.user1email;
     const email2 = req.query.user2email;
     console.log('verified', email1, email2, req.query);
@@ -239,7 +284,7 @@ app.get('/get-single-user', verifyJWT, async (req, res) => {
 })
 
 
-///////////// friend request list
+///////////// get friend request list
 
 app.get('/get-friend-requests', verifyJWT, async (req, res) => {
 
@@ -253,12 +298,42 @@ app.get('/get-friend-requests', verifyJWT, async (req, res) => {
             email: requester
         })
 
-    
+
         const incomingEmails = user.incomingRequests;
 
         // Find users whose email addresses are in the incomingEmails array
         const users = await User.find({ email: { $in: incomingEmails } });
-   
+
+        res.status(200).json({ users, success: true })
+
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'server error' })
+    }
+})
+
+
+//////// get friends
+
+
+
+app.get('/get-friends', verifyJWT, async (req, res) => {
+
+    const decoded = req.decoded
+
+    const requester = req.query.email
+
+
+    try {
+        const user = await User.findOne({
+            email: requester
+        })
+
+        const friends = user.friends;
+
+        // Find users whose email addresses are in the friends array
+        const users = await User.find({ email: { $in: friends } })
+
         res.status(200).json({ users, success: true })
 
     } catch (error) {
@@ -270,8 +345,55 @@ app.get('/get-friend-requests', verifyJWT, async (req, res) => {
 
 
 
+///// accept request
 
 
+
+app.post('/accept-request', verifyJWT, async (req, res) => {
+    const email1 = req.query.user1email
+    const email2 = req.query.user2email
+    console.log('verified', email1, email2);
+
+
+    try {
+        const user1 = await User.findOneAndUpdate({ email: email1 },
+            {
+                $addToSet: { friends: email2 },
+                $pull: { incomingRequests: email2 }
+
+            },
+            { new: true })
+
+
+
+
+        const user2 = await User.findOneAndUpdate({ email: email2 },
+            {
+                $addToSet: { friends: email1 },
+                $pull: { pendingRequests: email1 }
+            },
+            { new: true })
+
+
+
+
+
+        console.log('user2 ::::::::::', user2);
+        console.log('user1 ::::::::::', user1);
+
+
+
+
+        if (user1 && user2) {
+            res.status(200).json({ message: `Added ${user2.name} as a friend`, user: user1 })
+        }
+
+
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).send("Internal Server Error");
+    }
+})
 
 
 app.listen(3000, () => {
