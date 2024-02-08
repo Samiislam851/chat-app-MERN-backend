@@ -386,7 +386,11 @@ app.post('/accept-request', verifyJWT, async (req, res) => {
         const user1 = await User.findOneAndUpdate({ email: email1 },
             {
                 $addToSet: { friends: email2 },
-                $pull: { incomingRequests: email2 }
+                $pull: {
+                    incomingRequests: email2,
+                    pendingRequests: email2  // remove email from both because both user might have sent friend request to each other
+                    // edit later from front-end so that when user searches for adding someone and if he/she's already sent req then just accept it  
+                }
 
             },
             { new: true })
@@ -397,7 +401,12 @@ app.post('/accept-request', verifyJWT, async (req, res) => {
         const user2 = await User.findOneAndUpdate({ email: email2 },
             {
                 $addToSet: { friends: email1 },
-                $pull: { pendingRequests: email1 }
+                $pull: { 
+                    pendingRequests: email1,
+                    incomingRequests: email1, // the reason is described above
+                
+                
+                }
             },
             { new: true })
 
