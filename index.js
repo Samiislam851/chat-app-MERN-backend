@@ -412,10 +412,6 @@ app.post('/accept-request', verifyJWT, async (req, res) => {
             },
             { new: true })
 
-
-
-
-
         console.log('user2 ::::::::::', user2);
         console.log('user1 ::::::::::', user1);
 
@@ -474,7 +470,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
         const chatId = chat._id
 
-        res.status(200).json({ success: true, chatId })
+        res.status(200).json({ success: true, chatId, chat })
 
     } catch (error) {
 
@@ -483,7 +479,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
 
 
-/////// send Message ////
+/////////////////////////////////////// send Message ///////////////////////////////////
 
 app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
     const chatId = req.params.chatId;
