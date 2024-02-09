@@ -485,19 +485,20 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
 /////// send Message ////
 
-app.post('/send-message/:ids', verifyJWT, async (req, res) => {
-    const usersString = req.params.ids;
-    const userEmails = usersString.split('&');
+app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
+    const chatId = req.params.chatId;
     const messageContent = req.body.message;
-    const sender = userEmails[0];
+    const sender = req.body.sender;
 
+    console.log('ChatId', chatId, 'sender', sender);
     try {
         // Check if a chat exists for the given users
-        let chat = await Chats.findOne({ users: { $all: userEmails } });
+        let chat = await Chats.findOne({ _id: chatId });
 
         // If chat doesn't exist, create a new one
         if (!chat) {
-            res.status(400).json({ message: ' bad request | chat is not available' })
+            console.log('no chat with this id');
+            res.status(400).json({ message: 'bad request | chat is not available' })
             return
         }
 
@@ -510,6 +511,7 @@ app.post('/send-message/:ids', verifyJWT, async (req, res) => {
 
         // Save the new message
         const messageResponse = await newMessage.save();
+        console.log(messageResponse);
 
         // Send response
         res.send({ message: 'Message saved', messageResponse });
@@ -526,7 +528,7 @@ app.post('/send-message/:ids', verifyJWT, async (req, res) => {
 
 app.get('/messages/:chatId', verifyJWT, async (req, res) => {
     const chatId = req.params.chatId;
-    console.log('chatId::::::::;',chatId);
+    console.log('chatId::::::::;', chatId);
     try {
         let messages = await Messages.find({ chatId: chatId });
 
