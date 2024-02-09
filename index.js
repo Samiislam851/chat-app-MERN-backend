@@ -7,7 +7,8 @@ const db = require('./config/db');
 const User = require('./models/userModel');
 
 const generateToken = require('./config/generateToken');
-const verifyJWT = require('./middleware/VerifyJWT')
+const verifyJWT = require('./middleware/VerifyJWT');
+const Chats = require('./models/chatModel');
 
 /// Basic middlewares
 
@@ -401,11 +402,11 @@ app.post('/accept-request', verifyJWT, async (req, res) => {
         const user2 = await User.findOneAndUpdate({ email: email2 },
             {
                 $addToSet: { friends: email1 },
-                $pull: { 
+                $pull: {
                     pendingRequests: email1,
                     incomingRequests: email1, // the reason is described above
-                
-                
+
+
                 }
             },
             { new: true })
@@ -430,6 +431,60 @@ app.post('/accept-request', verifyJWT, async (req, res) => {
         res.status(500).send("Internal Server Error");
     }
 })
+
+
+/////////////////// Chat ///////////////////
+
+app.get('/chat/:ids', verifyJWT, async (req, res) => {
+    const usersString = req.params.ids
+    const userEmails = usersString.split('--')
+
+    console.log(userEmails);
+
+    try {
+
+       let chat = await Chats.find({ users: { $all: userEmails } })
+        console.log(chat);
+        if (!chat[0]) {
+
+
+            const newChat = new Chats({
+                users: userEmails,
+                chatName: ""
+            })
+
+            chat = await newChat.save()
+
+
+            console.log('savedChat::::::::', chat);
+
+
+
+
+            // res.status(200).json({ message: 'created a new Chat' })
+        }
+        console.log(chat);
+       
+    } catch (error) {
+
+    }
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 app.listen(3000, () => {
