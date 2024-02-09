@@ -3,7 +3,7 @@ const { Schema } = mongoose
 
 
 const messageSchema = ({
-    chatId: ObjectID,
+    chatId:  mongoose.Schema.Types.ObjectId,
     sender: String,
     content: String,
     timeStamp: {

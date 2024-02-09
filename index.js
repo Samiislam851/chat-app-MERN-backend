@@ -9,6 +9,7 @@ const User = require('./models/userModel');
 const generateToken = require('./config/generateToken');
 const verifyJWT = require('./middleware/VerifyJWT');
 const Chats = require('./models/chatModel');
+const Messages = require('./models/messageModel');
 
 /// Basic middlewares
 
@@ -443,7 +444,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
     try {
 
-       let chat = await Chats.find({ users: { $all: userEmails } })
+        let chat = await Chats.find({ users: { $all: userEmails } })
         console.log(chat);
         if (!chat[0]) {
 
@@ -463,8 +464,46 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
             // res.status(200).json({ message: 'created a new Chat' })
         }
-        console.log(chat);
-       
+        console.log('chat:::', chat);
+
+
+        let messages = await Messages.find({ chatId: chat._id })
+
+        console.log('messages:::', messages);
+
+
+
+    } catch (error) {
+
+    }
+})
+
+
+
+/////// send Message ////
+
+app.post('/send-message/:ids', verifyJWT, async (req, res) => {
+    const usersString = req.params.ids
+    const userEmails = usersString.split('--')
+    const messageContent = req.body.message;
+    const sender = userEmails[0]
+    
+    console.log(userEmails);
+
+    try {
+
+        let chat = await Chats.find({ users: { $all: userEmails } })
+
+
+        console.log('chat:::', chat);
+
+
+        let messages = await Messages.find({ chatId: chat._id })
+
+        console.log('messages:::', messages);
+
+
+
     } catch (error) {
 
     }
