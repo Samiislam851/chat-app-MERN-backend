@@ -440,15 +440,16 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
     const usersString = req.params.ids
     const userEmails = usersString.split('--')
 
-    console.log(userEmails);
+    console.log('user Emails', userEmails, 'the string', usersString);
 
     try {
 
-        let chat = await Chats.findOne({ users: { $all: userEmails } })
-        console.log(chat);
+        let chat = await Chats.findOne({ users: { $size: userEmails.length, $all: userEmails } })
+
         if (!chat) {
 
 
+            console.log('chat os null creating new chat');
             const newChat = new Chats({
                 users: userEmails,
                 chatName: ""
@@ -466,16 +467,14 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
             console.log('response', response);
 
 
-         
+
         }
         console.log('chat:::', chat);
 
 
-        let messages = await Messages.find({ chatId: chat._id })
+        const chatId = chat._id
 
-        console.log('messages:::', messages);
-        
-        res.status(200).json({ success : true, messages })
+        res.status(200).json({ success: true, chatId })
 
     } catch (error) {
 
@@ -488,7 +487,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
 app.post('/send-message/:ids', verifyJWT, async (req, res) => {
     const usersString = req.params.ids;
-    const userEmails = usersString.split('--');
+    const userEmails = usersString.split('&');
     const messageContent = req.body.message;
     const sender = userEmails[0];
 
@@ -498,7 +497,7 @@ app.post('/send-message/:ids', verifyJWT, async (req, res) => {
 
         // If chat doesn't exist, create a new one
         if (!chat) {
-            res.status(400).json({ message: ' bad request | chat is not available'})
+            res.status(400).json({ message: ' bad request | chat is not available' })
             return
         }
 
@@ -523,18 +522,21 @@ app.post('/send-message/:ids', verifyJWT, async (req, res) => {
 
 
 
+/////////////// get messages /////////////
 
+app.get('/messages/:chatId', verifyJWT, async (req, res) => {
+    const chatId = req.params.chatId;
+    console.log('chatId::::::::;',chatId);
+    try {
+        let messages = await Messages.find({ chatId: chatId });
 
-
-
-
-
-
-
-
-
-
-
+        console.log('messages:::', messages);
+        res.status(200).json(messages);
+    } catch (error) {
+        console.error('Error retrieving messages:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 
 app.listen(3000, () => {

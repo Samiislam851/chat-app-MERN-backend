@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 const { Schema } = mongoose
 
 
-const messageSchema = ({
-    chatId:  mongoose.Schema.Types.ObjectId,
+const messageSchema = new Schema ({
+    chatId: String,
     sender: String,
     content: String,
     timeStamp: {
