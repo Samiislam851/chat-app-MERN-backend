@@ -444,9 +444,9 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
     try {
 
-        let chat = await Chats.find({ users: { $all: userEmails } })
+        let chat = await Chats.findOne({ users: { $all: userEmails } })
         console.log(chat);
-        if (!chat[0]) {
+        if (!chat) {
 
 
             const newChat = new Chats({
@@ -455,14 +455,18 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
             })
 
             chat = await newChat.save()
-
+            const chatId = chat._id
 
             console.log('savedChat::::::::', chat);
 
+            const response = await User.updateMany(
+                { email: { $in: userEmails } },
+                { $push: { chats: chatId } }
+            )
+            console.log('response', response);
 
 
-
-            // res.status(200).json({ message: 'created a new Chat' })
+         
         }
         console.log('chat:::', chat);
 
@@ -470,8 +474,8 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
         let messages = await Messages.find({ chatId: chat._id })
 
         console.log('messages:::', messages);
-
-
+        
+        res.status(200).json({ success : true, messages })
 
     } catch (error) {
 
@@ -483,31 +487,38 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 /////// send Message ////
 
 app.post('/send-message/:ids', verifyJWT, async (req, res) => {
-    const usersString = req.params.ids
-    const userEmails = usersString.split('--')
+    const usersString = req.params.ids;
+    const userEmails = usersString.split('--');
     const messageContent = req.body.message;
-    const sender = userEmails[0]
-    
-    console.log(userEmails);
+    const sender = userEmails[0];
 
     try {
+        // Check if a chat exists for the given users
+        let chat = await Chats.findOne({ users: { $all: userEmails } });
 
-        let chat = await Chats.find({ users: { $all: userEmails } })
+        // If chat doesn't exist, create a new one
+        if (!chat) {
+            res.status(400).json({ message: ' bad request | chat is not available'})
+            return
+        }
 
+        // Create a new message
+        const newMessage = new Messages({
+            chatId: chat._id,
+            sender: sender,
+            content: messageContent
+        });
 
-        console.log('chat:::', chat);
+        // Save the new message
+        const messageResponse = await newMessage.save();
 
-
-        let messages = await Messages.find({ chatId: chat._id })
-
-        console.log('messages:::', messages);
-
-
-
+        // Send response
+        res.send({ message: 'Message saved', messageResponse });
     } catch (error) {
-
+        console.error(error);
+        res.status(500).send('Internal Server Error');
     }
-})
+});
 
 
 
