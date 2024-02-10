@@ -10,7 +10,7 @@ const generateToken = require('./config/generateToken');
 const verifyJWT = require('./middleware/VerifyJWT');
 const Chats = require('./models/chatModel');
 const Messages = require('./models/messageModel');
-
+const server = require ( 'http')
 /// Basic middlewares
 
 app.use(cors())
@@ -18,16 +18,34 @@ app.use(express.json())
 
 
 
+///// Socket.io connection
+
+const io = require('socket.io')(server, {
+
+    pingTimeOut: 60000,
+    cors: {
+        origin: ('localhost:3000/')
+    }
+})
+
+
+
+
+io.on('connection', (socket) => {
+    console.log('connected to socket.io')
+})
+
+
 
 
 //// checking db connection
-db.on('connected', () => {
-    console.log('connected msg from index');
-})
+// db.on('connected', () => {
+//     console.log('connected msg from index');
+// })
 
-db.on('disconnect', () => {
-    console.log('disconnected');
-})
+// db.on('disconnect', () => {
+//     console.log('disconnected');
+// })
 
 
 app.get('/', async (req, res) => {
