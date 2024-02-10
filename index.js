@@ -40,15 +40,51 @@ const io = require('socket.io')(server, {
 
 
 
-
+///////////////// socket //////////////
 
 io.on('connection', (socket) => {
 
     console.log('socket connected');
 
+
+    socket.on('setup', (user) => {
+        socket.join(user.email);
+        console.log(' connected to  setup user is :: ', user.email);
+        socket.emit('emitting connected  ')
+    })
+
+    socket.on('join-chat', (room) => {
+        socket.join(room);
+        console.log("user joined room " + room);
+    })
+
     socket.on('disconnect', () => {
         console.log('disconnected from socket');
     })
+
+    socket.on('new-message', (newMessageAndChat) => {
+        let chat = newMessageAndChat.chat;
+
+        console.log('from new message', chat.users);
+
+        if (!chat.users) return console.log('no user in this chat');
+
+
+        const chatUsers = Object.values(chat.users)
+        console.log('chat users', chatUsers);
+
+        chatUsers.forEach((user) => {
+            if (user == newMessageAndChat.message.sender) return
+
+            console.log('user.email', user);
+
+            socket.in(user).emit("message-received", newMessageAndChat.message)
+
+        })
+    })
+
+    socket.on("typing", (room)=> socket.in(room).emit("typing"));
+    socket.on("stop typing", (room)=> socket.in(room).emit("stop typing")  )
 })
 
 //// checking db connection
@@ -68,6 +104,7 @@ app.get('/', async (req, res) => {
 })
 
 /// register user///
+
 app.post('/saveUser', async (req, res) => {
     // console.log(req.body)
 
@@ -86,7 +123,7 @@ app.post('/saveUser', async (req, res) => {
                 const response = await user.save()
                 const token = generateToken(response);
 
-                console.log(token);
+                // console.log(token);
 
                 /// return a token from here also
                 res.status(200).json({ success: true, message: 'saved', user: response, token })
@@ -107,7 +144,7 @@ app.post('/saveUser', async (req, res) => {
 app.post('/login', async (req, res) => {
 
     const user = new User(req.body)
-    console.log('the user ', user);
+    // console.log('the user ', user);
 
     try {
 
@@ -140,7 +177,7 @@ app.post('/search-user', verifyJWT, async (req, res) => {
     const requester = req.body.user.email
 
 
-    console.log('requester', requester);
+    // console.log('requester', requester);
 
     const { inputValue } = req.body;
 
@@ -172,7 +209,7 @@ app.post('/search-user', verifyJWT, async (req, res) => {
 app.post('/send-request', verifyJWT, async (req, res) => {
     const email1 = req.query.user1email
     const email2 = req.query.user2email
-    console.log('verified', email1, email2, req.query);
+    // console.log('verified', email1, email2, req.query);
 
 
     /////////////// sending request from id1 to id2 
@@ -207,7 +244,7 @@ app.post('/send-request', verifyJWT, async (req, res) => {
 app.post('/cancel-request', verifyJWT, async (req, res) => {
     const email1 = req.query.user1email;
     const email2 = req.query.user2email;
-    console.log('verified', email1, email2, req.query);
+    // console.log('verified', email1, email2, req.query);
 
     try {
         const user1 = await User.findOneAndUpdate(
@@ -222,8 +259,8 @@ app.post('/cancel-request', verifyJWT, async (req, res) => {
             { new: true }
         );
 
-        console.log('user2 ::::::::::', user2);
-        console.log('user1 ::::::::::', user1);
+        // console.log('user2 ::::::::::', user2);
+        // console.log('user1 ::::::::::', user1);
 
         if (user1 && user2) {
             res.status(200).json({ message: 'Request canceled successfully.', user: user1 });
@@ -252,7 +289,7 @@ app.post('/cancel-request', verifyJWT, async (req, res) => {
 app.post('/cancel-request-from-requester', verifyJWT, async (req, res) => {
     const email1 = req.query.user1email;
     const email2 = req.query.user2email;
-    console.log('verified', email1, email2, req.query);
+    // console.log('verified', email1, email2, req.query);
 
     try {
         const user1 = await User.findOneAndUpdate(
@@ -267,8 +304,8 @@ app.post('/cancel-request-from-requester', verifyJWT, async (req, res) => {
             { new: true }
         );
 
-        console.log('user2 ::::::::::', user2);
-        console.log('user1 ::::::::::', user1);
+        // console.log('user2 ::::::::::', user2);
+        // console.log('user1 ::::::::::', user1);
 
         if (user1 && user2) {
             res.status(200).json({ message: 'Request canceled successfully.', user: user1 });
@@ -297,7 +334,7 @@ app.get('/get-single-user', verifyJWT, async (req, res) => {
 
 
 
-    console.log('requester >>> ', requester);
+    // console.log('requester >>> ', requester);
 
     const { inputValue } = req.body;
 
@@ -412,7 +449,7 @@ app.get('/get-sent-requests', verifyJWT, async (req, res) => {
 app.post('/accept-request', verifyJWT, async (req, res) => {
     const email1 = req.query.user1email
     const email2 = req.query.user2email
-    console.log('verified', email1, email2);
+    // console.log('verified', email1, email2);
 
 
     try {
@@ -443,8 +480,8 @@ app.post('/accept-request', verifyJWT, async (req, res) => {
             },
             { new: true })
 
-        console.log('user2 ::::::::::', user2);
-        console.log('user1 ::::::::::', user1);
+        // console.log('user2 ::::::::::', user2);
+        // console.log('user1 ::::::::::', user1);
 
 
 
@@ -467,7 +504,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
     const usersString = req.params.ids
     const userEmails = usersString.split('--')
 
-    console.log('user Emails', userEmails, 'the string', usersString);
+    // console.log('user Emails', userEmails, 'the string', usersString);
 
     try {
 
@@ -476,7 +513,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
         if (!chat) {
 
 
-            console.log('chat os null creating new chat');
+            console.log('chat is null creating new chat');
             const newChat = new Chats({
                 users: userEmails,
                 chatName: ""
@@ -496,7 +533,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
 
 
         }
-        console.log('chat:::', chat);
+        // console.log('chat:::', chat);
 
 
         const chatId = chat._id
@@ -517,7 +554,7 @@ app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
     const messageContent = req.body.message;
     const sender = req.body.sender;
 
-    console.log('ChatId', chatId, 'sender', sender);
+    // console.log('ChatId', chatId, 'sender', sender);
     try {
         // Check if a chat exists for the given users
         let chat = await Chats.findOne({ _id: chatId });

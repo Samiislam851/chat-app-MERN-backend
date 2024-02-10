@@ -25,7 +25,7 @@ const verifyJWT = (req, res, next) => {
         }
 
         else {
-            console.log('token verified');
+            // console.log('token verified');
             req.decoded = decoded
             next()
         }
