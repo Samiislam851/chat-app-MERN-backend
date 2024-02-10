@@ -4,39 +4,52 @@ const cors = require('cors')
 require('dotenv').config();
 const app = express()
 const db = require('./config/db');
+
 const User = require('./models/userModel');
 
 const generateToken = require('./config/generateToken');
 const verifyJWT = require('./middleware/VerifyJWT');
 const Chats = require('./models/chatModel');
 const Messages = require('./models/messageModel');
-const server = require ( 'http')
-/// Basic middlewares
+const http = require('http')
 
+const expressServer = http.createServer(app)
+
+
+
+
+
+/// Basic middlewares
 app.use(cors())
 app.use(express.json())
 
 
 
-///// Socket.io connection
 
+
+
+const server = app.listen(3000, () => {
+    console.log('example listening to port', 3000);
+})
 const io = require('socket.io')(server, {
-
-    pingTimeOut: 60000,
+    pingTimeout: 60000,
     cors: {
-        origin: ('localhost:3000/')
+        origin: 'http://localhost:5173'
     }
 })
 
 
 
 
+
 io.on('connection', (socket) => {
-    console.log('connected to socket.io')
+
+    console.log('socket connected');
+
+    socket.on('disconnect', () => {
+        console.log('disconnected from socket');
+    })
 })
-
-
-
 
 //// checking db connection
 // db.on('connected', () => {
@@ -127,7 +140,7 @@ app.post('/search-user', verifyJWT, async (req, res) => {
     const requester = req.body.user.email
 
 
-    console.log(requester);
+    console.log('requester', requester);
 
     const { inputValue } = req.body;
 
@@ -284,7 +297,7 @@ app.get('/get-single-user', verifyJWT, async (req, res) => {
 
 
 
-    console.log(requester);
+    console.log('requester >>> ', requester);
 
     const { inputValue } = req.body;
 
@@ -525,7 +538,7 @@ app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
 
         // Save the new message
         const messageResponse = await newMessage.save();
-        console.log(messageResponse);
+        console.log('messageResponse', messageResponse);
 
         // Send response
         res.send({ message: 'Message saved', messageResponse });
@@ -542,11 +555,11 @@ app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
 
 app.get('/messages/:chatId', verifyJWT, async (req, res) => {
     const chatId = req.params.chatId;
-    console.log('chatId::::::::;', chatId);
+    // console.log('chatId::::::::;', chatId);
     try {
         let messages = await Messages.find({ chatId: chatId });
 
-        console.log('messages:::', messages);
+        // console.log('messages:::', messages);
         res.status(200).json(messages);
     } catch (error) {
         console.error('Error retrieving messages:', error);
@@ -555,6 +568,3 @@ app.get('/messages/:chatId', verifyJWT, async (req, res) => {
 });
 
 
-app.listen(3000, () => {
-    console.log('example listening to port', 3000);
-})
