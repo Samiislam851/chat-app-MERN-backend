@@ -58,6 +58,8 @@ io.on('connection', (socket) => {
 
     connectedUsers[socket.handshake.query.user] = socket.id
 
+
+
     console.log('socket connected', socket.handshake.query.user, '==', socket.id, 'users', connectedUsers);
     // socket.on('setup', (user) => {
 
@@ -84,17 +86,9 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
 
 
-
-
-
-
-        // Leave all rooms the socket is currently joined
-        // Object.keys(socket.rooms).forEach(room => {
-        //     socket.leave(room);
-        //     console.log(`Socket left room: ${room}`);
-        // });
-
         delete connectedUsers[socket.handshake.query.user]
+
+        socket.emit('getOnlineUsers', Object.keys(connectedUsers))
 
         console.log('disconnected from socket', socket.handshake.query.user, '==', socket.id, 'connected', connectedUsers);
     })
@@ -117,7 +111,8 @@ io.on('connection', (socket) => {
 
             if (connectedUsers[user]) {
                 console.log('connectedUsers  user', connectedUsers[user], '==', user, "\n message", newMessageAndChat.message);
-                io.to(connectedUsers[user]).emit("message-received", newMessageAndChat.message)
+
+                io.to(connectedUsers[user]).emit("message-received", newMessageAndChat)
             }
 
 
@@ -129,14 +124,7 @@ io.on('connection', (socket) => {
     socket.on("stop typing", (room) => socket.in(room).emit("stop typing"))
 })
 
-//// checking db connection
-// db.on('connected', () => {
-//     console.log('connected msg from i');
-// })
 
-// db.on('disconnect', () => {
-//     console.log('disconnected');
-// })
 
 
 app.get('/', async (req, res) => {
@@ -504,7 +492,7 @@ app.get('/get-chats', verifyJWT, async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: 'server error' })
-         return
+        return
     }
 })
 
@@ -599,7 +587,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
     const usersString = req.params.ids
     const userEmails = usersString.split('--')
 
-    // console.log('user Emails', userEmails, 'the string', usersString);
+    console.log('user Emails', userEmails, 'the string', usersString);
 
     try {
 
@@ -611,7 +599,12 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
             console.log('chat is null creating new chat');
             const newChat = new Chats({
                 users: userEmails,
-                chatName: ""
+                chatName: "",
+                lastMessage: {
+                    sender: usersString.split('--')[0],
+                    content: 'no conversation yet',
+                    timeStamp: new Date()
+                }
             })
 
             chat = await newChat.save()
@@ -649,7 +642,7 @@ app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
     const messageContent = req.body.message;
     const sender = req.body.sender;
 
-    // console.log('ChatId', chatId, 'sender', sender);
+    console.log('ChatId', chatId, 'sender', sender);
     try {
         // Check if a chat exists for the given users
         let chat = await Chats.findOneAndUpdate({ _id: chatId }, {
@@ -695,12 +688,16 @@ app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
 
 app.get('/messages/:chatId', verifyJWT, async (req, res) => {
     const chatId = req.params.chatId;
-    // console.log('chatId::::::::;', chatId);
     try {
-        let messages = await Messages.find({ chatId: chatId });
+        const chat = await Chats.findOne({ _id: chatId })
+        const userEmails = chat.users
 
-        // console.log('messages:::', messages);
-        res.status(200).json(messages);
+        const users = await User.find({ email: { $in: userEmails } }, "email name photoURL")
+
+
+        const messages = await Messages.find({ chatId: chatId });
+
+        res.status(200).json({messages,users});
     } catch (error) {
         console.error('Error retrieving messages:', error);
         res.status(500).json({ error: 'Internal Server Error' });
