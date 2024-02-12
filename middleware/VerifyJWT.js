@@ -15,13 +15,15 @@ const verifyJWT = (req, res, next) => {
         if (err) {
             console.error('Token verification failed');
 
-            res.status(401).json({ success: false, message: 'Unauthorized' })
+            res.status(401).json({ success: false, message: 'Unauthorized' }) 
+            return
 
         } else if (!decoded) {
             console.error('Decoded payload is undefined');
 
 
             res.status(500).json({ success: false, message: 'Server Error Payload undefined' })
+            return
         }
 
         else {
@@ -30,5 +32,6 @@ const verifyJWT = (req, res, next) => {
             next()
         }
     })
+ 
 }
 module.exports = verifyJWT
