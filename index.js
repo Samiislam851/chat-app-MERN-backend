@@ -91,17 +91,11 @@ io.on('connection', (socket) => {
 
         chatUsers.forEach((user) => {
             if (user == newMessageAndChat.message.sender) return
-
             console.log('user.email', user);
-
             if (connectedUsers[user]) {
                 console.log('connectedUsers  user', connectedUsers[user], '==', user, "\n message", newMessageAndChat.message);
-
                 io.to(connectedUsers[user]).emit("message-received", newMessageAndChat)
             }
-
-
-
         })
     })
 
@@ -676,8 +670,6 @@ app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
         // console.log('messageResponse', messageResponse);
 
         // Send response 
-
-
         res.send({ message: 'Message saved', messageResponse });
     } catch (error) {
         console.error(error);
