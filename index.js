@@ -1,7 +1,8 @@
 const express = require('express')
 
-const cors = require('cors')
+const cors = require('cors');
 require('dotenv').config();
+
 const app = express()
 const db = require('./config/db');
 
@@ -60,38 +61,22 @@ io.on('connection', (socket) => {
 
 
 
-    console.log('socket connected', socket.handshake.query.user, '==', socket.id, 'users', connectedUsers);
-    // socket.on('setup', (user) => {
+    console.log('socket connected', socket.handshake.query.user, '==', socket.id, '\n users', connectedUsers);
+    let onlineUsers = Object.keys(connectedUsers)
 
-    //     socket.join(user?.email);
-    //     console.log('Connected to setup, user is:', user?.email);
-    //     socket.emit('emitting connected');
-
-    // })
-
-    // socket.on('join-chat', (room) => {
-    //     socket.join(room);
-    //     console.log("user joined room " + room);
-    // })
-
-    // socket.on('join-chat', (room) => {
-    //     if (!connectedUsers.has(room)) {
-    //         connectedUsers.add(room);
-    //         socket.join(room);
-    //         console.log("User joined room: " + room);
-    //     }
-    // });
-
+    console.log('Before emit line user : ', onlineUsers);
+    io.emit('getOnlineUsers', onlineUsers)
+    console.log('After emit line user : ', onlineUsers);
 
     socket.on('disconnect', () => {
-
-
         delete connectedUsers[socket.handshake.query.user]
 
-        socket.emit('getOnlineUsers', Object.keys(connectedUsers))
+        let onlineUsers = Object.keys(connectedUsers)
+        io.emit('getOnlineUsers', onlineUsers)
 
         console.log('disconnected from socket', socket.handshake.query.user, '==', socket.id, 'connected', connectedUsers);
     })
+
 
     socket.on('new-message', (newMessageAndChat) => {
         let chat = newMessageAndChat.chat;
@@ -119,6 +104,25 @@ io.on('connection', (socket) => {
 
         })
     })
+
+
+    socket.on('request accepted', (data) => {
+        const { user1, user1name, user2Email } = data
+        const user = { name: user1name, email: user1 }
+        io.to(connectedUsers[user2Email]).emit('request accepted res', user)
+    })
+
+
+
+    socket.on('send request', (data) => {
+        const { user1name, user1Email, user2Email } = data
+        const user = { name: user1name, email: user1Email }
+
+        console.log('from socket user that accepted => ', user, user2Email);
+        io.to(connectedUsers[user2Email]).emit('send request res', user)
+        console.log('sent >>>>>>>>>>>>>>>>> from socket user that accepted => ', user, user2Email);
+    })
+
 
     socket.on("typing", (room) => socket.in(room).emit("typing"));
     socket.on("stop typing", (room) => socket.in(room).emit("stop typing"))
@@ -463,12 +467,12 @@ app.get('/get-chats', verifyJWT, async (req, res) => {
 
         chats.forEach(chat => usersTemp.push(...chat.users))
 
-        console.log(usersTemp);
+        // console.log(usersTemp);
 
         const userEmails = usersTemp.filter(user => user !== userEmail)
 
         const chatUsers = await User.find({ email: { $in: userEmails } }).select('name email photoURL chats')
-        console.log(chatUsers);
+        // console.log(chatUsers);
 
         const chatsFinal = chats.map(chat => {
 
@@ -587,7 +591,7 @@ app.get('/chat/:ids', verifyJWT, async (req, res) => {
     const usersString = req.params.ids
     const userEmails = usersString.split('--')
 
-    console.log('user Emails', userEmails, 'the string', usersString);
+    // console.log('user Emails', userEmails, 'the string', usersString);
 
     try {
 
@@ -642,7 +646,7 @@ app.post('/send-message/:chatId', verifyJWT, async (req, res) => {
     const messageContent = req.body.message;
     const sender = req.body.sender;
 
-    console.log('ChatId', chatId, 'sender', sender);
+    // console.log('ChatId', chatId, 'sender', sender);
     try {
         // Check if a chat exists for the given users
         let chat = await Chats.findOneAndUpdate({ _id: chatId }, {
@@ -697,7 +701,7 @@ app.get('/messages/:chatId', verifyJWT, async (req, res) => {
 
         const messages = await Messages.find({ chatId: chatId });
 
-        res.status(200).json({messages,users});
+        res.status(200).json({ messages, users });
     } catch (error) {
         console.error('Error retrieving messages:', error);
         res.status(500).json({ error: 'Internal Server Error' });
