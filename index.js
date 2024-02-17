@@ -100,6 +100,21 @@ io.on('connection', (socket) => {
     })
 
 
+
+    socket.on('typing emit', (data) => {
+        const { user1, user2 } = data
+        console.log('typing started');
+        const resData = { user: user1, typing: true }
+        io.to(connectedUsers[user2]).emit('typing', resData)
+    })
+    socket.on('typing stopped', (data) => {
+        const { user1, user2 } = data
+        const resData = { user: user1, typing: false }
+        console.log('typing stopped');
+        io.to(connectedUsers[user2]).emit('typing stopped', resData)
+    })
+
+
     socket.on('request accepted', (data) => {
         const { user1, user1name, user2Email } = data
         const user = { name: user1name, email: user1 }
@@ -125,11 +140,7 @@ io.on('connection', (socket) => {
 
 
 
-app.get('/', async (req, res) => {
 
-    res.status(200).json({ message: 'hello world' })
-
-})
 
 /// register user///
 
@@ -708,7 +719,7 @@ if (true) {
     // console.log( path.join(__dirname2, "/client/dist"));
     app.use(express.static(path.join(__dirname2, "/client/dist")))
     app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname2, "client", "dist", "i.html"))
+        res.sendFile(path.join(__dirname2, "client", "dist", "index.html"))
     })
 } else {
     app.get('/', (req, res) => {
