@@ -74,21 +74,12 @@ npm start
 - **MongoDB**: NoSQL database used for data storage.
 - **Mongoose**: MongoDB object modeling tool for Node.js.
 - **JSON Web Tokens (JWT)**: Used for user authentication and authorization.
-- *(Add more technologies as needed)*
+-**socket.io**: Used for realtime communication and notification updates
 
-## Contributing
 
-We welcome contributions from the community! If you find any issues or have suggestions for improvements, please feel free to submit a pull request or open an issue on GitHub.
-
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Authors
 
-- John Doe
-- Jane Smith
+- Samiul Islam
 
-## Acknowledgments
 
-Special thanks to the developers of Express.js, MongoDB, and other open-source libraries and tools used in this project. Their contributions are greatly appreciated.
