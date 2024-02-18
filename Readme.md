@@ -52,20 +52,20 @@ npm start
 
 
 ## API Endpoints
--  **POST /saveUser: Register a new user.
--  **POST /login: Login an existing user.
--  **POST /search-user: Search for users based on name or email.
--  **POST /send-request: Send a friend request to another user.
--  **POST /cancel-request: Cancel a friend request sent by the requester.
--  **POST /cancel-request-from-requester: Cancel a friend request sent by the requester.
--  **POST /accept-request: Accept a friend request from another user.
--  **GET /get-single-user: Get details of a single user.
--  **GET /get-friend-requests: Get a list of incoming friend requests.
--  **GET /get-friends: Get a list of friends for the authenticated user.
--  **GET /get-chats: Get a list of chats for the authenticated user.
--  **GET /get-sent-requests: Get a list of friend requests sent by the authenticated user.
--  **GET /messages/:chatId: Get messages for a specific chat.
--  **POST /send-message/:chatId: Send a message to a specific chat.
+-  **POST /saveUser:** Register a new user.
+-  **POST /login:** Login an existing user.
+-  **POST /search-user:** Search for users based on name or email.
+-  **POST /send-request:** Send a friend request to another user.
+-  **POST /cancel-request:** Cancel a friend request sent by the requester.
+-  **POST /cancel-request-from-requester:** Cancel a friend request sent by the requester.
+-  **POST /accept-request:** Accept a friend request from another user.
+-  **GET /get-single-user:** Get details of a single user.
+-  **GET /get-friend-requests:** Get a list of incoming friend requests.
+-  **GET /get-friends:** Get a list of friends for the authenticated user.
+-  **GET /get-chats:** Get a list of chats for the authenticated user.
+-  **GET /get-sent-requests:** Get a list of friend requests sent by the authenticated user.
+-  **GET /messages/:chatId:** Get messages for a specific chat.
+-  **POST /send-message/:chatId:** Send a message to a specific chat.
 
 ## Technologies Used
 
