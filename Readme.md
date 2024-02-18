@@ -1,6 +1,6 @@
 # ChitChatZ App Backend
 
-The ChitChatZ App Backend is a Node.js and Express.js server that provides backend functionality for the ChitChatZ application. It utilizes MongoDB as its database to store user data, messages, and other relevant information.
+The ChitChatZ App Backend is a Node.js and Express.js server that provides backend functionality for the ChitChatZ application with its realtime communication feature. It utilizes MongoDB as its database to store user data, messages, and other relevant information.
 
 ## Features
 
