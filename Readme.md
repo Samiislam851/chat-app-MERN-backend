@@ -15,33 +15,36 @@ The ChitChatZ App Backend is a Node.js and Express.js server that provides backe
 
 1. Clone the repository:
 ````
-git clone https://github.com/your-username/chitchatz-app-backend.git
-
+git clone https://github.com/Samiislam851/chat-app-MERN-backend.git
 ````
-Copy code
+
 
 2. Install dependencies:
 
+````
 cd chitchatz-app-backend
 npm install
+````
 
-markdown
-Copy code
 
 3. Configure environment variables:
 
 Create a `.env` file in the root directory and configure the following variables:
 
-PORT=3000
-MONGODB_URI=mongodb://localhost:27017/chitchatz
+````
+
+MONGODB_URI= your_mongodb_uri
 JWT_SECRET=your_secret_key
 
-markdown
-Copy code
+````
+
 
 4. Start the server:
 
+````
 npm start
+
+````
 
 
 
@@ -49,14 +52,20 @@ npm start
 
 
 ## API Endpoints
-
-- **POST /api/auth/register**: Register a new user.
-- **POST /api/auth/login**: Login an existing user.
-- **GET /api/user/profile**: Get user profile information.
-- **PUT /api/user/profile**: Update user profile information.
-- **GET /api/messages**: Get all messages.
-- **POST /api/messages**: Send a new message.
-- *(Add more endpoints as needed)*
+-  **POST /saveUser: Register a new user.
+-  **POST /login: Login an existing user.
+-  **POST /search-user: Search for users based on name or email.
+-  **POST /send-request: Send a friend request to another user.
+-  **POST /cancel-request: Cancel a friend request sent by the requester.
+-  **POST /cancel-request-from-requester: Cancel a friend request sent by the requester.
+-  **POST /accept-request: Accept a friend request from another user.
+-  **GET /get-single-user: Get details of a single user.
+-  **GET /get-friend-requests: Get a list of incoming friend requests.
+-  **GET /get-friends: Get a list of friends for the authenticated user.
+-  **GET /get-chats: Get a list of chats for the authenticated user.
+-  **GET /get-sent-requests: Get a list of friend requests sent by the authenticated user.
+-  **GET /messages/:chatId: Get messages for a specific chat.
+-  **POST /send-message/:chatId: Send a message to a specific chat.
 
 ## Technologies Used
 
